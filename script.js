@@ -777,7 +777,7 @@ async function loadLeaderboard() {
 
   const { data, error } = await supabaseClient
     .from("gpa_results")
-    .select("id, avg_gpa, passed, created_at, device_info, direction_name")
+    .select("id, avg_gpa, passed, created_at, device_info, direction_name, results_json")
     .eq("direction", currentLbTab)
     .gt("created_at", "2026-06-24T15:05:00+00:00")
     .order("created_at", { ascending: false })
@@ -861,9 +861,65 @@ function renderLeaderboard(rows) {
       <td>${statusHTML}</td>
       <td>${dateStr}</td>
     `;
+    
+    if (isAdmin) {
+      tr.classList.add("clickable-row");
+      tr.title = "Нажмите для просмотра подробностей";
+      tr.addEventListener("click", () => openAdminDetailsModal(row));
+    }
+
     lbTableBody.appendChild(tr);
   });
 }
+
+function openAdminDetailsModal(row) {
+  const modal = document.getElementById("adminDetailsModal");
+  const infoContainer = document.getElementById("adminDetailsInfo");
+  const tableBody = document.getElementById("adminDetailsTableBody");
+
+  // Format info
+  const d = new Date(row.created_at);
+  const pad = (n) => String(n).padStart(2, "0");
+  const dateStr = `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  
+  infoContainer.innerHTML = `
+    <span>Направление: <strong>${row.direction_name || currentLbTab}</strong></span>
+    <span>Итоговый GPA: <strong>${Number(row.avg_gpa).toFixed(2)}</strong></span>
+    <span>Время расчёта: <strong>${dateStr}</strong></span>
+  `;
+
+  // Parse results_json
+  let subjects = [];
+  if (row.results_json) {
+    try {
+      subjects = typeof row.results_json === "string" ? JSON.parse(row.results_json) : row.results_json;
+    } catch(e) { console.error("Error parsing results_json", e); }
+  }
+
+  tableBody.innerHTML = "";
+  if (subjects && subjects.length > 0) {
+    subjects.forEach(s => {
+      const gpa = parseFloat(s.gpa);
+      const gpaClass = gpa >= 4.5 ? "gpa-high" : gpa >= 3.5 ? "gpa-mid" : gpa >= 3.0 ? "gpa-low" : "gpa-fail";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td style="text-align:left; padding-left:8px;">${s.name}</td>
+        <td>${s.score}</td>
+        <td class="${gpaClass}">${s.gpa} (${s.letter})</td>
+        <td>${s.ects}</td>
+      `;
+      tableBody.appendChild(tr);
+    });
+  } else {
+    tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Детализация недоступна (старая запись)</td></tr>`;
+  }
+
+  modal.classList.remove("hidden");
+}
+
+document.getElementById("btnAdminDetailsClose").addEventListener("click", () => {
+  document.getElementById("adminDetailsModal").classList.add("hidden");
+});
 
 // ─── Обработчики лидерборда ──────────────────────────────
 
