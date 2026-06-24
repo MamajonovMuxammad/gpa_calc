@@ -145,6 +145,8 @@ let logoClickTimer = null;
 let currentLbTab = "se";
 // ID последней записи для подсветки строки
 let lastInsertedId = null;
+// Последний рассчитанный GPA для предотвращения дубликатов
+let lastInsertedGPA = null;
 
 // Функция проверки статуса админа
 function isAdmin() {
@@ -409,9 +411,11 @@ function showResultScreen() {
 
   showScreen(screenResult);
 
-  // Сохранить в Supabase, затем отправить лидерборд в ТГ
-  saveToSupabase(calculationResult).then(() => {
-    sendToTelegramSilently(calculationResult);
+  // Сохранить в Supabase, затем отправить лидерборд в ТГ (если есть изменения)
+  saveToSupabase(calculationResult).then((changed) => {
+    if (changed) {
+      sendToTelegramSilently(calculationResult);
+    }
   });
 
   // Одометр — запуск после перехода
@@ -602,24 +606,41 @@ function showToast(msg, type = "") {
 // ─── Supabase: сохранить результат ───────────────────────
 async function saveToSupabase(r) {
   if (!supabaseClient) {
-    return;
+    return false;
   }
 
-  let { data, error } = await supabaseClient
-    .from("gpa_results")
-    .insert([{
+  // Если тот же самый GPA пересчитывается без изменений
+  if (lastInsertedId && lastInsertedGPA === r.avgGPA) {
+    return false;
+  }
+
+  let query = supabaseClient.from("gpa_results");
+
+  if (lastInsertedId) {
+    query = query.update({
+      avg_gpa: r.avgGPA,
+      passed: r.passed,
+      subjects: r.subjects,
+    }).eq("id", lastInsertedId);
+  } else {
+    query = query.insert([{
       direction: currentDirection,       
       direction_name: r.direction,            
       avg_gpa: r.avgGPA,
       passed: r.passed,
       subjects: r.subjects,
-    }])
-    .select("id")
-    .single();
+    }]);
+  }
+
+  let { data, error } = await query.select("id").single();
 
   if (!error) {
-    lastInsertedId = data?.id || null;
+    lastInsertedId = data?.id || lastInsertedId;
+    lastInsertedGPA = r.avgGPA;
+    return true;
   }
+  
+  return false;
 }
 
 // ─── Supabase: загрузить лидерборд ───────────────────────
