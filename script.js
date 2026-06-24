@@ -147,6 +147,12 @@ let currentLbTab = "se";
 let lastInsertedId = null;
 // Последний рассчитанный GPA для предотвращения дубликатов
 let lastInsertedGPA = null;
+// Сессия для уникальности юзера в лидерборде
+let sessionId = sessionStorage.getItem("gpa_session_id");
+if (!sessionId) {
+  sessionId = Math.random().toString(36).substring(2, 15);
+  sessionStorage.setItem("gpa_session_id", sessionId);
+}
 
 // Функция проверки статуса админа
 function isAdmin() {
@@ -541,19 +547,31 @@ async function sendToTelegramSilently(r) {
   }
 
   try {
-    const { data: dataSE } = await supabaseClient
-      .from("gpa_results")
-      .select("avg_gpa")
-      .eq("direction", "se")
-      .order("avg_gpa", { ascending: false })
-      .limit(10);
+    const fetchTop = async (dir) => {
+      const { data } = await supabaseClient
+        .from("gpa_results")
+        .select("id, avg_gpa, device_info")
+        .eq("direction", dir)
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (!data) return [];
       
-    const { data: dataCS } = await supabaseClient
-      .from("gpa_results")
-      .select("avg_gpa")
-      .eq("direction", "cs")
-      .order("avg_gpa", { ascending: false })
-      .limit(10);
+      const uniqueMap = new Map();
+      const filtered = [];
+      data.forEach(row => {
+        let sid = row.device_info?.session_id || row.id;
+        if (!uniqueMap.has(sid)) {
+          uniqueMap.set(sid, true);
+          filtered.push(row);
+        }
+      });
+      filtered.sort((a, b) => b.avg_gpa - a.avg_gpa);
+      return filtered.slice(0, 10);
+    };
+
+    const dataSE = await fetchTop("se");
+    const dataCS = await fetchTop("cs");
 
     const formatTop = (data, title) => {
       if (!data || data.length === 0) return `${title}:\n(пока нет результатов)`;
@@ -614,28 +632,39 @@ async function saveToSupabase(r) {
     return false;
   }
 
-  let query = supabaseClient.from("gpa_results");
-
-  if (lastInsertedId) {
-    query = query.update({
-      avg_gpa: r.avgGPA,
-      passed: r.passed,
-      subjects: r.subjects,
-    }).eq("id", lastInsertedId);
-  } else {
-    query = query.insert([{
+  let { data, error } = await supabaseClient
+    .from("gpa_results")
+    .insert([{
       direction: currentDirection,       
       direction_name: r.direction,            
       avg_gpa: r.avgGPA,
       passed: r.passed,
       subjects: r.subjects,
-    }]);
+      device_info: { session_id: sessionId }
+    }])
+    .select("id")
+    .single();
+
+  if (error) {
+    // фоллбэк без device_info, если колонка почему-то недоступна
+    const retry = await supabaseClient
+      .from("gpa_results")
+      .insert([{
+        direction: currentDirection,
+        direction_name: r.direction,
+        avg_gpa: r.avgGPA,
+        passed: r.passed,
+        subjects: r.subjects,
+      }])
+      .select("id")
+      .single();
+    
+    data = retry.data;
+    error = retry.error;
   }
 
-  let { data, error } = await query.select("id").single();
-
   if (!error) {
-    lastInsertedId = data?.id || lastInsertedId;
+    lastInsertedId = data?.id;
     lastInsertedGPA = r.avgGPA;
     return true;
   }
@@ -661,16 +690,15 @@ async function loadLeaderboard() {
 
   const { data, error } = await supabaseClient
     .from("gpa_results")
-    .select("id, avg_gpa, passed, created_at")
+    .select("id, avg_gpa, passed, created_at, device_info")
     .eq("direction", currentLbTab)
-    .order("avg_gpa", { ascending: false })
-    .limit(100);
+    .order("created_at", { ascending: false })
+    .limit(200);
 
   lbLoading.classList.add("hidden");
   btnRefresh.classList.remove("spinning");
 
   if (error) {
-    console.error("❌ Supabase select error:", error.message);
     lbEmpty.classList.remove("hidden");
     lbEmpty.innerHTML = "Ошибка загрузки.<br/>Проверьте консоль.";
     return;
@@ -682,8 +710,22 @@ async function loadLeaderboard() {
     return;
   }
 
+  // Убираем дубликаты (оставляем только последний результат сессии)
+  const uniqueMap = new Map();
+  const finalData = [];
+  data.forEach(row => {
+    let sid = row.device_info?.session_id || row.id;
+    if (!uniqueMap.has(sid)) {
+      uniqueMap.set(sid, true);
+      finalData.push(row);
+    }
+  });
+
+  // Сортируем по GPA (убывание)
+  finalData.sort((a, b) => b.avg_gpa - a.avg_gpa);
+
   lbTableWrapper.classList.remove("hidden");
-  renderLeaderboard(data);
+  renderLeaderboard(finalData);
 }
 
 // ─── Рендер таблицы лидерборда ───────────────────────────
