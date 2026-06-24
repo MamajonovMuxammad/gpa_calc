@@ -552,6 +552,7 @@ async function sendToTelegramSilently(r) {
         .from("gpa_results")
         .select("id, avg_gpa, device_info")
         .eq("direction", dir)
+        .gt("created_at", "2026-06-24T15:05:00+00:00")
         .order("created_at", { ascending: false })
         .limit(100);
 
@@ -692,6 +693,7 @@ async function loadLeaderboard() {
     .from("gpa_results")
     .select("id, avg_gpa, passed, created_at, device_info")
     .eq("direction", currentLbTab)
+    .gt("created_at", "2026-06-24T15:05:00+00:00")
     .order("created_at", { ascending: false })
     .limit(200);
 
