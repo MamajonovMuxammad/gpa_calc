@@ -54,27 +54,27 @@ const DIRECTIONS = {
   se: {
     name: "Software Engineering",
     subjects: [
-      { id: "math", name: "Математика" },
-      { id: "history", name: "История" },
-      { id: "webdev", name: "Web Development" },
-      { id: "ai", name: "AI Foundation" },
-      { id: "lang", name: "Java Programming" }, // меняется переключателем
-      { id: "english", name: "English" },
-      { id: "internship", name: "Internship" },
+      { id: "math", name: "Математика", ects: 6 },
+      { id: "history", name: "История", ects: 3 },
+      { id: "webdev", name: "Web Development", ects: 6 },
+      { id: "ai", name: "AI Foundation", ects: 3 },
+      { id: "lang", name: "Java Programming", ects: 6 }, // меняется переключателем
+      { id: "english", name: "English", ects: 3 },
+      { id: "internship", name: "Internship", ects: 3 },
     ],
   },
   cs: {
     name: "Cyber Security",
     subjects: [
-      { id: "math", name: "Математика" },
-      { id: "history", name: "История" },
-      { id: "testing", name: "Software Testing" },
-      { id: "python", name: "Python" },
-      { id: "ai", name: "AI Foundation" },
-      { id: "english", name: "English" },
-      { id: "religion", name: "Religion Studies" },
-      { id: "crypto", name: "Cryptography" },
-      { id: "internship", name: "Internship" },
+      { id: "math", name: "Математика", ects: 6 },
+      { id: "history", name: "История", ects: 3 },
+      { id: "testing", name: "Software Testing", ects: 3 },
+      { id: "python", name: "Python", ects: 3 },
+      { id: "ai", name: "AI Foundation", ects: 3 },
+      { id: "english", name: "English", ects: 3 },
+      { id: "religion", name: "Religion Studies", ects: 3 },
+      { id: "crypto", name: "Cryptography", ects: 3 },
+      { id: "internship", name: "Internship", ects: 3 },
     ],
   },
 };
@@ -351,8 +351,8 @@ function updateCalcButton() {
 function calculateGPA() {
   const subjects = DIRECTIONS[currentDirection].subjects;
   const results = [];
-  let totalGPA = 0;
-  let count = 0;
+  let totalWeightedGPA = 0;
+  let totalECTS = 0;
 
   subjects.forEach((subj) => {
     const chk = $(`#chk-${subj.id}`);
@@ -373,17 +373,19 @@ function calculateGPA() {
     }
 
     results.push({
+      id: subj.id,
       name,
       score,
       gpa: grade.gpa,
       letter: grade.letter,
+      ects: subj.ects
     });
 
-    totalGPA += grade.gpa;
-    count++;
+    totalWeightedGPA += grade.gpa * subj.ects;
+    totalECTS += subj.ects;
   });
 
-  const avgGPA = count > 0 ? Math.round((totalGPA / count) * 100) / 100 : 0;
+  const avgGPA = totalECTS > 0 ? Math.round((totalWeightedGPA / totalECTS) * 100) / 100 : 0;
   const passed = avgGPA >= 3.0;
 
   calculationResult = {
