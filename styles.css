@@ -370,40 +370,73 @@ input[type="number"] {
   text-transform: uppercase;
 }
 
-/* --- Переключатель языка (SE) --- */
-.lang-toggle-wrapper {
+/* --- Выбор семестра --- */
+.semester-tabs-wrapper {
   width: 100%;
   max-width: 720px;
   margin-bottom: 24px;
-}
-
-.lang-toggle {
-  display: inline-flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border-primary);
   border-radius: 2px;
-  overflow: hidden;
+  background: var(--bg-secondary);
 }
 
-.lang-toggle button {
+.semester-tabs-wrapper::-webkit-scrollbar {
+  height: 4px;
+}
+.semester-tabs-wrapper::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+}
+
+.semester-tabs {
+  display: inline-flex;
+  min-width: min-content;
+}
+
+.semester-tabs button {
   font-family: var(--font-data);
   font-size: 13px;
-  padding: 10px 20px;
-  background: var(--bg-secondary);
+  padding: 12px 20px;
+  background: transparent;
   color: var(--text-tertiary);
   border: none;
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  border-right: 1px solid var(--border-primary);
+}
+.semester-tabs button:last-child {
+  border-right: none;
 }
 
-.lang-toggle button.active {
+.semester-tabs button.active {
   background: var(--accent);
   color: #FFFFFF;
 }
 
-.lang-toggle button:not(.active):hover {
+.semester-tabs button:not(.active):hover {
   background: var(--bg-hover);
   color: var(--text-secondary);
+}
+
+/* --- Стили для выпадающего списка элективов --- */
+.elective-select {
+  width: 100%;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 2px;
+  padding: 6px 8px;
+  font-family: var(--font-main);
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--transition-fast);
+  cursor: pointer;
+}
+.elective-select:focus {
+  border-color: var(--accent);
 }
 
 /* --- Таблица предметов --- */

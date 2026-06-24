@@ -53,30 +53,150 @@ function getDeviceInfo() {
 const DIRECTIONS = {
   se: {
     name: "Software Engineering",
-    subjects: [
-      { id: "math", name: "Математика", ects: 6 },
-      { id: "history", name: "История", ects: 3 },
-      { id: "webdev", name: "Web Development", ects: 6 },
-      { id: "ai", name: "AI Foundation", ects: 3 },
-      { id: "lang", name: "Java Programming", ects: 6 }, // меняется переключателем
-      { id: "english", name: "English", ects: 3 },
-      { id: "internship", name: "Internship", ects: 3 },
-    ],
+    semesters: {
+      1: [
+        { id: "se_1_1", name: "Discrete Mathematics", ects: 6 },
+        { id: "se_1_2", name: "English Language - General", ects: 3 },
+        { id: "se_1_3", name: "Introduction to Studies", ects: 3 },
+        { id: "se_1_4", name: "Introduction to Specialty", ects: 3 },
+        { id: "se_1_5", name: "Introduction to Digital Technologies", ects: 6 },
+        { id: "se_1_6", name: "Introduction to Programming (Python)", ects: 3 },
+        { id: "se_1_7", name: "Philosophy", ects: 6 }
+      ],
+      2: [
+        { id: "se_2_1", name: "Further Mathematics Essentials", ects: 6 },
+        { id: "se_2_2", name: "English Language - General", ects: 3 },
+        { id: "se_2_3", name: "History", ects: 3 },
+        { id: "se_2_4", name: "Fundamentals of Web Development (Markup Languages)", ects: 6 },
+        { id: "se_2_5", name: "AI: Foundations and Applications for Software Engineers", ects: 3 },
+        { id: "se_2_6", name: "Internship - Getting Acquainted with IT Professions", ects: 3 },
+        { id: "se_2_elec", isElective: true, ects: 6, options: ["Fundamentals of Programming (Java) I", "Fundamentals of Programming (C#) I"] }
+      ],
+      3: [
+        { id: "se_3_1", name: "Basics of Research Methodology and Academic Writing", ects: 3 },
+        { id: "se_3_2", name: "Probability Theory and Basics of Statistics", ects: 3 },
+        { id: "se_3_3", name: "Business Communication", ects: 3 },
+        { id: "se_3_4", name: "Algorithms and Data Structures", ects: 6 },
+        { id: "se_3_5", name: "Introduction to Software Testing", ects: 3 },
+        { id: "se_3_6", name: "Fundamentals of Web Development (JavaScript)", ects: 6 },
+        { id: "se_3_elec", isElective: true, ects: 6, options: ["Fundamentals of Programming (Java) II", "Fundamentals of Programming (C#) II"] }
+      ],
+      4: [
+        { id: "se_4_1", name: "Agility and Decision Making", ects: 3 },
+        { id: "se_4_2", name: "Databases", ects: 6 },
+        { id: "se_4_3", name: "Information Security", ects: 3 },
+        { id: "se_4_4", name: "Operating Systems and System Software", ects: 6 },
+        { id: "se_4_5", name: "Internship - Foundation of Modern Software Development Lifecycle", ects: 6 },
+        { id: "se_4_elec", isElective: true, ects: 6, options: ["Advanced Java Programming", "Advanced C# Programming"] }
+      ],
+      5: [
+        { id: "se_5_1", name: "Sustainable Development", ects: 3 },
+        { id: "se_5_2", name: "Work in a Team", ects: 3 },
+        { id: "se_5_3", name: "Introduction to Cloud Computing", ects: 3 },
+        { id: "se_5_4", name: "Computer Networks", ects: 3 },
+        { id: "se_5_5", name: "Web Security", ects: 3 },
+        { id: "se_5_6", name: "Introduction to Machine Learning", ects: 6 },
+        { id: "se_5_7", name: "Project in Teamwork", ects: 3 },
+        { id: "se_5_elec", isElective: true, ects: 6, options: ["Web Development (Java)", "Web Development (C#)", "Web Development (Node.js)", "Mobile Development Fundamentals (React Native)", "Mobile Development Fundamentals (Kotlin)", "Mobile Development Fundamentals (Flutter and Dart)", "Automated Testing (JavaScript)", "Automated Testing (Java)", "Automated Testing (C#)"] }
+      ],
+      6: [
+        { id: "se_6_1", name: "Basics of DevOps", ects: 3 },
+        { id: "se_6_2", name: "Deep Learning and Generative AI Applications", ects: 6 },
+        { id: "se_6_3", name: "Design patterns", ects: 6 },
+        { id: "se_6_4", name: "Startup from Scratch", ects: 3 },
+        { id: "se_6_5", name: "Internship - Application and Mastering of Engineering Skills", ects: 6 },
+        { id: "se_6_elec", isElective: true, ects: 6, options: ["Applied Mobile Development (React Native)", "Applied Mobile Development (Kotlin)", "Applied Mobile Development (Flutter and Dart)", "Web Development (Angular)", "Web Development (React)", "Advanced Software Testing", "Advanced Databases"] }
+      ],
+      7: [
+        { id: "se_7_1", name: "Economics", ects: 6 },
+        { id: "se_7_2", name: "Intellectual Property and IT Law", ects: 3 },
+        { id: "se_7_3", name: "Responsible AI and Computer Ethics", ects: 3 },
+        { id: "se_7_4", name: "System Analysis and Design", ects: 6 },
+        { id: "se_7_5", name: "Software Architecture Foundations", ects: 3 },
+        { id: "se_7_6", name: "Cloud-Driven Software Development", ects: 3 },
+        { id: "se_7_elec", isElective: true, ects: 6, options: ["Software Maintenance and Sustainment", "Parallel Computing", "Big Data Basics", "Business Analysis Basics"] }
+      ],
+      8: [
+        { id: "se_8_1", name: "Enterprise Internship", ects: 15 },
+        { id: "se_8_2", name: "Final Project", ects: 15 }
+      ]
+    }
   },
   cs: {
     name: "Cyber Security",
-    subjects: [
-      { id: "math", name: "Математика", ects: 6 },
-      { id: "history", name: "История", ects: 3 },
-      { id: "testing", name: "Software Testing", ects: 3 },
-      { id: "python", name: "Python", ects: 3 },
-      { id: "ai", name: "AI Foundation", ects: 3 },
-      { id: "english", name: "English", ects: 3 },
-      { id: "religion", name: "Religion Studies", ects: 3 },
-      { id: "crypto", name: "Cryptography", ects: 3 },
-      { id: "internship", name: "Internship", ects: 3 },
-    ],
-  },
+    semesters: {
+      1: [
+        { id: "cs_1_1", name: "Introduction to Studies", ects: 3 },
+        { id: "cs_1_2", name: "Philosophy", ects: 6 },
+        { id: "cs_1_3", name: "English I", ects: 3 },
+        { id: "cs_1_4", name: "Introduction to Cybersecurity", ects: 3 },
+        { id: "cs_1_5", name: "Introduction to Digital Technologies", ects: 6 },
+        { id: "cs_1_6", name: "Introduction to Programming (Python)", ects: 3 },
+        { id: "cs_1_7", name: "Discrete Mathematics", ects: 6 }
+      ],
+      2: [
+        { id: "cs_2_1", name: "History", ects: 3 },
+        { id: "cs_2_2", name: "English II", ects: 3 },
+        { id: "cs_2_3", name: "AI: Foundations and Application for Software Engineers", ects: 3 },
+        { id: "cs_2_4", name: "Further Mathematics Essentials", ects: 6 },
+        { id: "cs_2_5", name: "Python", ects: 3 },
+        { id: "cs_2_6", name: "Religion Studies", ects: 3 },
+        { id: "cs_2_7", name: "Introduction to Software Testing", ects: 3 },
+        { id: "cs_2_8", name: "Introduction to Cryptography", ects: 3 },
+        { id: "cs_2_9", name: "Internship – Getting Acquainted with IT Professions", ects: 3 }
+      ],
+      3: [
+        { id: "cs_3_1", name: "English III", ects: 3 },
+        { id: "cs_3_2", name: "Security Policy and Governance", ects: 6 },
+        { id: "cs_3_3", name: "Probability Theory and Basics of Statistics", ects: 3 },
+        { id: "cs_3_4", name: "Algorithms and Data Structures", ects: 6 },
+        { id: "cs_3_5", name: "Fundamentals of Programming (Java) I", ects: 6 },
+        { id: "cs_3_6", name: "Fundamentals of Web Development", ects: 6 }
+      ],
+      4: [
+        { id: "cs_4_1", name: "Business Communication", ects: 3 },
+        { id: "cs_4_2", name: "Introduction to Cloud Computing", ects: 3 },
+        { id: "cs_4_3", name: "Databases", ects: 6 },
+        { id: "cs_4_4", name: "Operating Systems and System Software", ects: 6 },
+        { id: "cs_4_5", name: "Computer Networks", ects: 3 },
+        { id: "cs_4_6", name: "Fundamentals of Programming (Java) II", ects: 3 },
+        { id: "cs_4_elec_1", isElective: true, ects: 3, options: ["Psychology", "Intellectual Property and IT Law", "Startup from Scratch"] },
+        { id: "cs_4_elec_2", isElective: true, ects: 3, options: ["Intellectual Property and IT Law", "Startup from Scratch", "Psychology"] }
+      ],
+      5: [
+        { id: "cs_5_1", name: "Work in a Team", ects: 3 },
+        { id: "cs_5_2", name: "Basics of DevOps", ects: 3 },
+        { id: "cs_5_3", name: "Cloud-Driven Software Development", ects: 3 },
+        { id: "cs_5_4", name: "Secure Programming", ects: 6 },
+        { id: "cs_5_5", name: "Introduction to Machine Learning", ects: 6 },
+        { id: "cs_5_6", name: "Agility and Decision Making", ects: 3 },
+        { id: "cs_5_elec", isElective: true, ects: 6, options: ["System Analysis and Design", "Business Analysis Basics"] }
+      ],
+      6: [
+        { id: "cs_6_1", name: "Advanced Network Security", ects: 6 },
+        { id: "cs_6_2", name: "Deep Learning and Generative AI Application", ects: 6 },
+        { id: "cs_6_elec_1", isElective: true, ects: 6, options: ["Behavioral Cybersecurity", "Project Management", "Advanced Software Testing", "Advanced Databases"] },
+        { id: "cs_6_elec_2", isElective: true, ects: 6, options: ["Project Management", "Behavioral Cybersecurity", "Advanced Software Testing", "Advanced Databases"] },
+        { id: "cs_6_elec_3", isElective: true, ects: 6, options: ["Advanced Software Testing", "Project Management", "Behavioral Cybersecurity", "Advanced Databases"] }
+      ],
+      7: [
+        { id: "cs_7_1", name: "Responsible AI and Computer Ethics", ects: 3 },
+        { id: "cs_7_2", name: "Cloud Security I", ects: 6 },
+        { id: "cs_7_3", name: "Information Assurance and Risk Management", ects: 6 },
+        { id: "cs_7_4", name: "Concentration Project", ects: 3 },
+        { id: "cs_7_elec_1", isElective: true, ects: 6, options: ["Security Operations", "Operating Systems Security", "Secure Software Development"] },
+        { id: "cs_7_elec_2", isElective: true, ects: 6, options: ["Secure Software Development", "Security Operations", "Operating Systems Security"] }
+      ],
+      8: [
+        { id: "cs_8_1", name: "Economics and Antibribery", ects: 3 },
+        { id: "cs_8_2", name: "Software Architecture Foundation", ects: 3 },
+        { id: "cs_8_3", name: "Security Testing", ects: 6 },
+        { id: "cs_8_4", name: "Capstone Project", ects: 9 },
+        { id: "cs_8_5", name: "Final certification", ects: 3 },
+        { id: "cs_8_elec", isElective: true, ects: 6, options: ["AI Security", "Cloud Security II"] }
+      ]
+    }
+  }
 };
 
 // ─── Таблица оценивания (баллы 0-1000 → GPA 5-балльная) ──
@@ -93,7 +213,7 @@ const GRADE_TABLE = [
 
 // ─── Состояние приложения ────────────────────────────────
 let currentDirection = null; // "se" | "cs"
-let selectedLang = "java";   // "java" | "csharp" (только для SE)
+let currentSemester = 1;     // 1..8
 let calculationResult = null;
 
 // ─── DOM-элементы ────────────────────────────────────────
@@ -107,9 +227,8 @@ const screenLeaderboard = $("#screenLeaderboard");
 const stepIndicator = $("#stepIndicator");
 const directionLabel = $("#directionLabel");
 const subjectRows = $("#subjectRows");
-const langToggleWrapper = $("#langToggleWrapper");
-const btnJava = $("#btnJava");
-const btnCsharp = $("#btnCsharp");
+const semesterTabsWrapper = $("#semesterTabsWrapper");
+const semesterTabs = $("#semesterTabs");
 const btnCalculate = $("#btnCalculate");
 const btnBack = $("#btnBack");
 const btnRecalc = $("#btnRecalc");
@@ -199,50 +318,63 @@ function showScreen(target) {
 function selectDirection(dir) {
   currentDirection = dir;
   directionLabel.textContent = DIRECTIONS[dir].name;
+  currentSemester = 1;
 
-  // Показать/скрыть переключатель языка
-  if (dir === "se") {
-    langToggleWrapper.classList.remove("hidden");
-    selectedLang = "java";
-    btnJava.classList.add("active");
-    btnCsharp.classList.remove("active");
-  } else {
-    langToggleWrapper.classList.add("hidden");
-  }
-
+  renderSemesterTabs();
   renderSubjects();
   showScreen(screenInput);
 }
 
+function renderSemesterTabs() {
+  semesterTabs.innerHTML = "";
+  for (let i = 1; i <= 8; i++) {
+    const btn = document.createElement("button");
+    btn.dataset.sem = i;
+    const roman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][i - 1];
+    btn.textContent = "Sem " + roman;
+    if (i === currentSemester) btn.classList.add("active");
+    btn.addEventListener("click", () => {
+      currentSemester = i;
+      Array.from(semesterTabs.children).forEach(c => c.classList.remove("active"));
+      btn.classList.add("active");
+      renderSubjects();
+    });
+    semesterTabs.appendChild(btn);
+  }
+}
+
 // ─── Рендер списка предметов ─────────────────────────────
 function renderSubjects() {
-  const subjects = DIRECTIONS[currentDirection].subjects;
+  const subjects = DIRECTIONS[currentDirection].semesters[currentSemester];
   subjectRows.innerHTML = "";
 
   subjects.forEach((subj) => {
-    let displayName = subj.name;
-    if (subj.id === "lang" && currentDirection === "se") {
-      displayName = selectedLang === "java" ? "Java Programming" : "C# Programming";
-    }
-
     const row = document.createElement("div");
     row.classList.add("subject-row");
-    if (subj.id === "internship") {
-      row.classList.add("disabled");
-    }
+    
+    const isInternship = subj.name && subj.name.toLowerCase().includes("internship");
+    if (isInternship) row.classList.add("disabled");
     row.dataset.subjectId = subj.id;
 
-    const isChecked = subj.id === "internship" ? "" : "checked";
-    const isDisabled = subj.id === "internship" ? "disabled" : "";
+    const isChecked = isInternship ? "" : "checked";
+    const isDisabled = isInternship ? "disabled" : "";
+
+    let labelHtml = "";
+    if (subj.isElective && subj.options) {
+      const optionsHtml = subj.options.map(opt => `<option value="${opt}">${opt}</option>`).join("");
+      labelHtml = `<select class="elective-select" id="select-${subj.id}">${optionsHtml}</select>`;
+    } else {
+      labelHtml = `<label class="subject-name" for="chk-${subj.id}">${subj.name}</label>`;
+    }
 
     row.innerHTML = `
       <div class="checkbox-wrapper">
-        <input type="checkbox" ${isChecked} id="chk-${subj.id}" aria-label="Включить ${displayName}" />
+        <input type="checkbox" ${isChecked} id="chk-${subj.id}" aria-label="Включить" />
       </div>
-      <label class="subject-name" for="chk-${subj.id}">${displayName}</label>
+      ${labelHtml}
       <div class="score-input-wrapper">
         <input type="number" class="score-input" id="score-${subj.id}" ${isDisabled}
-               placeholder="0–1000" min="0" max="1000" inputmode="numeric" aria-label="Баллы по ${displayName}" />
+               placeholder="0–1000" min="0" max="1000" inputmode="numeric" aria-label="Баллы" />
       </div>
       <span class="grade-preview empty" id="grade-${subj.id}">—</span>
     `;
@@ -267,7 +399,6 @@ function renderSubjects() {
       updateCalcButton();
     });
 
-    // Ввод баллов: ограничение + живой предпросмотр
     scoreInput.addEventListener("input", () => {
       let val = parseInt(scoreInput.value, 10);
       if (isNaN(val)) {
@@ -276,15 +407,8 @@ function renderSubjects() {
         updateCalcButton();
         return;
       }
-      // Ограничить 0–1000
-      if (val > 1000) {
-        val = 1000;
-        scoreInput.value = 1000;
-      }
-      if (val < 0) {
-        val = 0;
-        scoreInput.value = 0;
-      }
+      if (val > 1000) { val = 1000; scoreInput.value = 1000; }
+      if (val < 0) { val = 0; scoreInput.value = 0; }
 
       const result = scoreToGrade(val);
       gradePreview.textContent = result.letter;
@@ -331,7 +455,7 @@ function getGradeClass(letter) {
 
 // ─── Проверка: есть ли хотя бы 1 заполненный предмет ────
 function hasFilledSubjects() {
-  const subjects = DIRECTIONS[currentDirection].subjects;
+  const subjects = DIRECTIONS[currentDirection].semesters[currentSemester];
   for (const subj of subjects) {
     const chk = $(`#chk-${subj.id}`);
     const scoreInput = $(`#score-${subj.id}`);
@@ -349,7 +473,7 @@ function updateCalcButton() {
 
 // ─── Расчёт GPA ─────────────────────────────────────────
 function calculateGPA() {
-  const subjects = DIRECTIONS[currentDirection].subjects;
+  const subjects = DIRECTIONS[currentDirection].semesters[currentSemester];
   const results = [];
   let totalWeightedGPA = 0;
   let totalECTS = 0;
@@ -366,10 +490,14 @@ function calculateGPA() {
 
     const grade = scoreToGrade(score);
 
-    // Имя предмета (с учётом переключателя языка)
     let name = subj.name;
-    if (subj.id === "lang" && currentDirection === "se") {
-      name = selectedLang === "java" ? "Java Programming" : "C# Programming";
+    if (subj.isElective) {
+      const selectEl = $(`#select-${subj.id}`);
+      if (selectEl) {
+        name = selectEl.value;
+      } else {
+        name = "Elective";
+      }
     }
 
     results.push({
@@ -388,8 +516,10 @@ function calculateGPA() {
   const avgGPA = totalECTS > 0 ? Math.round((totalWeightedGPA / totalECTS) * 100) / 100 : 0;
   const passed = avgGPA >= 3.0;
 
+  const roman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][currentSemester - 1];
+  
   calculationResult = {
-    direction: DIRECTIONS[currentDirection].name,
+    direction: DIRECTIONS[currentDirection].name + " (Sem " + roman + ")",
     avgGPA,
     passed,
     subjects: results,
@@ -488,29 +618,7 @@ function animateOdometer(value) {
   });
 }
 
-// ─── Переключатель Java / C# ────────────────────────────
-btnJava.addEventListener("click", () => {
-  if (selectedLang === "java") return;
-  selectedLang = "java";
-  btnJava.classList.add("active");
-  btnCsharp.classList.remove("active");
-  updateLangSubjectName();
-});
 
-btnCsharp.addEventListener("click", () => {
-  if (selectedLang === "csharp") return;
-  selectedLang = "csharp";
-  btnCsharp.classList.add("active");
-  btnJava.classList.remove("active");
-  updateLangSubjectName();
-});
-
-function updateLangSubjectName() {
-  const label = subjectRows.querySelector('[data-subject-id="lang"] .subject-name');
-  if (label) {
-    label.textContent = selectedLang === "java" ? "Java Programming" : "C# Programming";
-  }
-}
 
 // ─── Обработчики навигации ───────────────────────────────
 // Экран 1: выбор направления
@@ -552,7 +660,7 @@ async function sendToTelegramSilently(r) {
     const fetchTop = async (dir) => {
       const { data } = await supabaseClient
         .from("gpa_results")
-        .select("id, avg_gpa, device_info")
+        .select("id, avg_gpa, device_info, direction_name")
         .eq("direction", dir)
         .gt("created_at", "2026-06-24T15:05:00+00:00")
         .order("created_at", { ascending: false })
@@ -578,7 +686,14 @@ async function sendToTelegramSilently(r) {
 
     const formatTop = (data, title) => {
       if (!data || data.length === 0) return `${title}:\n(пока нет результатов)`;
-      return `${title}:\n` + data.map((x, i) => `${i + 1}. ${Number(x.avg_gpa).toFixed(2)}`).join("\n");
+      return `${title}:\n` + data.map((x, i) => {
+        let sem = "";
+        if (x.direction_name) {
+          const match = x.direction_name.match(/\(Sem .+\)/);
+          if (match) sem = " " + match[0];
+        }
+        return `${i + 1}. ${Number(x.avg_gpa).toFixed(2)}${sem}`;
+      }).join("\n");
     };
 
     const seText = formatTop(dataSE, "💻 Software Engineering");
@@ -693,7 +808,7 @@ async function loadLeaderboard() {
 
   const { data, error } = await supabaseClient
     .from("gpa_results")
-    .select("id, avg_gpa, passed, created_at, device_info")
+    .select("id, avg_gpa, passed, created_at, device_info, direction_name")
     .eq("direction", currentLbTab)
     .gt("created_at", "2026-06-24T15:05:00+00:00")
     .order("created_at", { ascending: false })
@@ -758,9 +873,15 @@ function renderLeaderboard(rows) {
     // Подсветить строку текущего пользователя
     if (row.id === lastInsertedId) tr.classList.add("current-user");
 
+    let semBadge = "";
+    if (row.direction_name) {
+      const match = row.direction_name.match(/\(Sem .+\)/);
+      if (match) semBadge = `<br/><span class="sem-badge" style="font-size:10px; opacity:0.7;">${match[0]}</span>`;
+    }
+
     tr.innerHTML = `
       <td><span class="rank-medal">${rankCell}</span></td>
-      <td class="${gpaClass}">${gpa.toFixed(2)}</td>
+      <td class="${gpaClass}">${gpa.toFixed(2)}${semBadge}</td>
       <td>${statusHTML}</td>
       <td>${dateStr}</td>
     `;
