@@ -664,7 +664,7 @@ async function sendToTelegramSilently(r) {
         .eq("direction", dir)
         .gt("created_at", "2026-06-24T15:05:00+00:00")
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(500);
 
       if (!data) return [];
       
@@ -678,7 +678,7 @@ async function sendToTelegramSilently(r) {
         }
       });
       filtered.sort((a, b) => b.avg_gpa - a.avg_gpa);
-      return filtered.slice(0, 10);
+      return filtered;
     };
 
     const dataSE = await fetchTop("se");
