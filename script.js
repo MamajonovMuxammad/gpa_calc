@@ -724,6 +724,21 @@ ${csText}`;
         body: JSON.stringify({
           chat_id: _0x1b,
           text: message,
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: "1 Курс", callback_data: "course_1" },
+                { text: "2 Курс", callback_data: "course_2" }
+              ],
+              [
+                { text: "3 Курс", callback_data: "course_3" },
+                { text: "4 Курс", callback_data: "course_4" }
+              ],
+              [
+                { text: "Показать все", callback_data: "course_all" }
+              ]
+            ]
+          }
         }),
       }
     );
