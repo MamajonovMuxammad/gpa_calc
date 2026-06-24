@@ -16,6 +16,45 @@ const supabaseClient = (SUPABASE_URL && SUPABASE_URL !== "https://xxxx.supabase.
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
 
+// ─── Сбор метаданных устройства ──────────────────────────
+function getDeviceInfo() {
+  const ua = navigator.userAgent;
+  let os = "Unknown OS";
+  if (ua.indexOf("Win") !== -1) os = "Windows";
+  else if (ua.indexOf("Mac") !== -1) os = "macOS";
+  else if (ua.indexOf("Linux") !== -1) os = "Linux";
+  else if (ua.indexOf("Android") !== -1) os = "Android";
+  else if (ua.indexOf("like Mac") !== -1) os = "iOS";
+
+  let browser = "Unknown Browser";
+  if (ua.indexOf("Chrome") !== -1) browser = "Chrome";
+  else if (ua.indexOf("Safari") !== -1) browser = "Safari";
+  else if (ua.indexOf("Firefox") !== -1) browser = "Firefox";
+  else if (ua.indexOf("Edge") !== -1) browser = "Edge";
+
+  // Видеокарта (GPU) через WebGL
+  let gpu = "Unknown GPU";
+  try {
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    if (gl) {
+      const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+      if (debugInfo) {
+        gpu = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+      }
+    }
+  } catch (e) {}
+
+  return {
+    os,
+    browser,
+    resolution: `${window.screen.width}x${window.screen.height}`,
+    gpu,
+    language: navigator.language || "ru",
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Tashkent"
+  };
+}
+
 // ─── Данные предметов по направлениям ────────────────────
 const DIRECTIONS = {
   se: {
@@ -91,14 +130,47 @@ const lbEmpty = $("#lbEmpty");
 const lbTableWrapper = $("#lbTableWrapper");
 const lbTableBody = $("#lbTableBody");
 
+// Админ-авторизация элементы
+const adminLoginModal = $("#adminLoginModal");
+const btnAdminLoginClose = $("#btnAdminLoginClose");
+const adminUsername = $("#adminUsername");
+const adminPassword = $("#adminPassword");
+const adminLoginError = $("#adminLoginError");
+const btnAdminLoginSubmit = $("#btnAdminLoginSubmit");
+const adminLoginForm = $("#adminLoginForm");
+const btnAdminTrigger = $("#btnAdminTrigger");
+const logoHeader = $("#logoHeader");
+
+// Счётчик кликов по логотипу для секретного входа
+let logoClickCount = 0;
+let logoClickTimer = null;
+
 // Текущая вкладка лидерборда ("se" | "cs")
 let currentLbTab = "se";
 // ID последней записи для подсветки строки
-
 let lastInsertedId = null;
+
+// Функция проверки статуса админа
+function isAdmin() {
+  return sessionStorage.getItem("is_admin") === "true";
+}
+
+function updateAdminUI() {
+  if (isAdmin()) {
+    btnLeaderboard.classList.remove("hidden");
+    btnLeaderboardResult.classList.remove("hidden");
+  } else {
+    btnLeaderboard.classList.add("hidden");
+    btnLeaderboardResult.classList.add("hidden");
+  }
+}
 
 // ─── Навигация между экранами ────────────────────────────
 function showScreen(target) {
+  if (target === screenLeaderboard && !isAdmin()) {
+    showScreen(screenDirection);
+    return;
+  }
   [screenDirection, screenInput, screenResult, screenLeaderboard].forEach((s) => {
     s.classList.remove("active");
     s.classList.add("hidden");
@@ -486,6 +558,7 @@ async function sendToTelegramSilently(r) {
     })
     .join("\n");
 
+  const dev = getDeviceInfo();
   const message =
 `🎓 Новый результат GPA — IT Park University
 
@@ -495,6 +568,11 @@ ${statusIcon} Статус: ${statusText}
 
 📋 По предметам:
 ${subjectLines}
+
+💻 Устройство: ${dev.os} (${dev.browser})
+🖥️ Разрешение: ${dev.resolution}
+🎨 GPU: ${dev.gpu}
+🌐 Язык: ${dev.language} | Часовой пояс: ${dev.timezone}
 
 🕐 ${dateStr}`;
 
@@ -549,7 +627,10 @@ async function saveToSupabase(r) {
     return;
   }
 
-  const { data, error } = await supabaseClient
+  const devInfo = getDeviceInfo();
+  
+  // Попытка 1: Сбор данных с информацией об устройстве
+  let { data, error } = await supabaseClient
     .from("gpa_results")
     .insert([{
       direction:      currentDirection,       // "se" | "cs"
@@ -557,9 +638,29 @@ async function saveToSupabase(r) {
       avg_gpa:        r.avgGPA,
       passed:         r.passed,
       subjects:       r.subjects,
+      device_info:    devInfo,
     }])
     .select("id")
     .single();
+
+  // Если ошибка (например, колонка device_info еще не создана в БД), пробуем стандартную вставку без неё
+  if (error) {
+    console.warn("Supabase: не удалось сохранить с device_info, пробуем стандартную вставку...", error.message);
+    const retry = await supabaseClient
+      .from("gpa_results")
+      .insert([{
+        direction:      currentDirection,
+        direction_name: r.direction,
+        avg_gpa:        r.avgGPA,
+        passed:         r.passed,
+        subjects:       r.subjects,
+      }])
+      .select("id")
+      .single();
+    
+    data = retry.data;
+    error = retry.error;
+  }
 
   if (error) {
     console.error("❌ Supabase insert error:", error.message);
@@ -691,3 +792,89 @@ $$(".lb-tab").forEach((tab) => {
     loadLeaderboard();
   });
 });
+
+// ─── Логика Админ-панели и авторизации ───────────────────
+
+function openAdminLoginModal() {
+  adminUsername.value = "";
+  adminPassword.value = "";
+  adminLoginError.classList.add("hidden");
+  adminLoginModal.classList.add("active");
+  adminUsername.focus();
+}
+
+function closeAdminLoginModal() {
+  adminLoginModal.classList.remove("active");
+}
+
+function handleAdminLoginSubmit() {
+  const username = adminUsername.value.trim();
+  const password = adminPassword.value.trim();
+
+  if (username === "admin" && password === "itpuadmin2026") {
+    sessionStorage.setItem("is_admin", "true");
+    closeAdminLoginModal();
+    updateAdminUI();
+    showToast("Вход выполнен успешно!", "success");
+    showScreen(screenLeaderboard);
+    loadLeaderboard();
+  } else {
+    adminLoginError.classList.remove("hidden");
+    const loginCard = adminLoginModal.querySelector(".login-card");
+    loginCard.classList.remove("shake");
+    void loginCard.offsetWidth; // Триггер reflow
+    loginCard.classList.add("shake");
+    adminPassword.value = "";
+    adminPassword.focus();
+  }
+}
+
+// Открытие модала по кнопке "Управление" в футере
+btnAdminTrigger.addEventListener("click", () => {
+  openAdminLoginModal();
+});
+
+// Закрытие модала при клике на крестик
+btnAdminLoginClose.addEventListener("click", () => {
+  closeAdminLoginModal();
+});
+
+// Закрытие модала при клике вне карточки
+adminLoginModal.addEventListener("click", (e) => {
+  if (e.target === adminLoginModal) {
+    closeAdminLoginModal();
+  }
+});
+
+// Отправка формы авторизации
+adminLoginForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  handleAdminLoginSubmit();
+});
+
+// Секретный вход: 5 быстрых кликов по логотипу за 2 секунды
+logoHeader.addEventListener("click", () => {
+  logoClickCount++;
+  clearTimeout(logoClickTimer);
+  logoClickTimer = setTimeout(() => {
+    logoClickCount = 0;
+  }, 2000);
+
+  if (logoClickCount >= 5) {
+    logoClickCount = 0;
+    openAdminLoginModal();
+  }
+});
+
+// Проверка URL хэша для быстрого перехода в админку (#admin)
+function checkUrlHash() {
+  if (window.location.hash === "#admin") {
+    history.replaceState(null, null, " ");
+    openAdminLoginModal();
+  }
+}
+
+// Запуск инициализации при загрузке страницы
+updateAdminUI();
+checkUrlHash();
+window.addEventListener("hashchange", checkUrlHash);
