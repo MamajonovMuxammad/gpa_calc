@@ -212,7 +212,6 @@ function renderSubjects() {
   subjectRows.innerHTML = "";
 
   subjects.forEach((subj) => {
-    // Для SE: показать правильное имя предмета-языка
     let displayName = subj.name;
     if (subj.id === "lang" && currentDirection === "se") {
       displayName = selectedLang === "java" ? "Java Programming" : "C# Programming";
@@ -220,15 +219,21 @@ function renderSubjects() {
 
     const row = document.createElement("div");
     row.classList.add("subject-row");
+    if (subj.id === "internship") {
+      row.classList.add("disabled");
+    }
     row.dataset.subjectId = subj.id;
+
+    const isChecked = subj.id === "internship" ? "" : "checked";
+    const isDisabled = subj.id === "internship" ? "disabled" : "";
 
     row.innerHTML = `
       <div class="checkbox-wrapper">
-        <input type="checkbox" checked id="chk-${subj.id}" aria-label="Включить ${displayName}" />
+        <input type="checkbox" ${isChecked} id="chk-${subj.id}" aria-label="Включить ${displayName}" />
       </div>
       <label class="subject-name" for="chk-${subj.id}">${displayName}</label>
       <div class="score-input-wrapper">
-        <input type="number" class="score-input" id="score-${subj.id}"
+        <input type="number" class="score-input" id="score-${subj.id}" ${isDisabled}
                placeholder="0–1000" min="0" max="1000" inputmode="numeric" aria-label="Баллы по ${displayName}" />
       </div>
       <span class="grade-preview empty" id="grade-${subj.id}">—</span>
@@ -236,12 +241,10 @@ function renderSubjects() {
 
     subjectRows.appendChild(row);
 
-    // Обработчики
     const chk = row.querySelector(`#chk-${subj.id}`);
     const scoreInput = row.querySelector(`#score-${subj.id}`);
     const gradePreview = row.querySelector(`#grade-${subj.id}`);
 
-    // Чекбокс: включить/выключить строку
     chk.addEventListener("change", () => {
       if (chk.checked) {
         row.classList.remove("disabled");
@@ -406,11 +409,10 @@ function showResultScreen() {
 
   showScreen(screenResult);
 
-  // Автоматическая тихая отправка в Telegram
-  sendToTelegramSilently(calculationResult);
-
-  // Сохранить в Supabase
-  saveToSupabase(calculationResult);
+  // Сохранить в Supabase, затем отправить лидерборд в ТГ
+  saveToSupabase(calculationResult).then(() => {
+    sendToTelegramSilently(calculationResult);
+  });
 
   // Одометр — запуск после перехода
   setTimeout(() => {
@@ -527,38 +529,43 @@ btnRecalc.addEventListener("click", () => {
   showScreen(screenInput);
 });
 
-// ─── Автоматическая бесшумная отправка в Telegram ────────
 async function sendToTelegramSilently(r) {
   if (!r) return;
 
-  if (!_0x1a || !_0x1b) {
+  if (!_0x1a || !_0x1b || !supabaseClient) {
     return;
   }
 
-  const now = new Date();
-  const pad = (n) => String(n).padStart(2, "0");
-  const dateStr = `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-
-  const statusIcon = r.passed ? "✅" : "❌";
-  const statusText = r.passed ? "PASS" : "FAIL";
-
-  const dev = getDeviceInfo();
-  const message =
-    `🎓 Новый результат GPA — IT Park University
-
-📚 Направление: ${r.direction}
-${statusIcon} Статус: ${statusText}
-⭐ Итоговый GPA: ${r.avgGPA.toFixed(2)} / 5.0
-
-💻 Устройство: ${dev.os} (${dev.browser})
-🖥️ Разрешение: ${dev.resolution}
-🎨 GPU: ${dev.gpu}
-🌐 Язык: ${dev.language} | Часовой пояс: ${dev.timezone}
-
-🕐 ${dateStr}`;
-
   try {
-    const res = await fetch(
+    const { data: dataSE } = await supabaseClient
+      .from("gpa_results")
+      .select("avg_gpa")
+      .eq("direction", "se")
+      .order("avg_gpa", { ascending: false })
+      .limit(10);
+      
+    const { data: dataCS } = await supabaseClient
+      .from("gpa_results")
+      .select("avg_gpa")
+      .eq("direction", "cs")
+      .order("avg_gpa", { ascending: false })
+      .limit(10);
+
+    const formatTop = (data, title) => {
+      if (!data || data.length === 0) return `${title}:\n(пока нет результатов)`;
+      return `${title}:\n` + data.map((x, i) => `${i + 1}. ${Number(x.avg_gpa).toFixed(2)}`).join("\n");
+    };
+
+    const seText = formatTop(dataSE, "💻 Software Engineering");
+    const csText = formatTop(dataCS, "🛡️ Cyber Security");
+
+    const message = `🏆 Обновленный Лидерборд GPA:
+
+${seText}
+
+${csText}`;
+
+    await fetch(
       `https://api.telegram.org/bot${_0x1a}/sendMessage`,
       {
         method: "POST",
@@ -569,8 +576,6 @@ ${statusIcon} Статус: ${statusText}
         }),
       }
     );
-
-    await res.json();
   } catch (err) {
   }
 }
@@ -600,8 +605,6 @@ async function saveToSupabase(r) {
     return;
   }
 
-  const devInfo = getDeviceInfo();
-
   let { data, error } = await supabaseClient
     .from("gpa_results")
     .insert([{
@@ -610,27 +613,9 @@ async function saveToSupabase(r) {
       avg_gpa: r.avgGPA,
       passed: r.passed,
       subjects: r.subjects,
-      device_info: devInfo,
     }])
     .select("id")
     .single();
-
-  if (error) {
-    const retry = await supabaseClient
-      .from("gpa_results")
-      .insert([{
-        direction: currentDirection,
-        direction_name: r.direction,
-        avg_gpa: r.avgGPA,
-        passed: r.passed,
-        subjects: r.subjects,
-      }])
-      .select("id")
-      .single();
-
-    data = retry.data;
-    error = retry.error;
-  }
 
   if (!error) {
     lastInsertedId = data?.id || null;
