@@ -654,67 +654,9 @@ async function sendToTelegramSilently(r) {
   }
 
   try {
-    const fetchTop = async (dir) => {
-      const { data } = await supabaseClient
-        .from("gpa_results")
-        .select("id, avg_gpa, device_info, direction_name, created_at")
-        .eq("direction", dir)
-        .gt("created_at", "2026-06-24T15:05:00+00:00")
-        .order("created_at", { ascending: false })
-        .limit(500);
-
-      if (!data) return [];
-      
-      const uniqueMap = new Map();
-      const filtered = [];
-      data.forEach(row => {
-        let sid = row.device_info?.session_id || row.id;
-        if (!uniqueMap.has(sid)) {
-          uniqueMap.set(sid, true);
-          filtered.push(row);
-        }
-      });
-      filtered.sort((a, b) => b.avg_gpa - a.avg_gpa);
-      return filtered;
-    };
-
-    const dataSE = await fetchTop("se");
-    const dataCS = await fetchTop("cs");
-
-    const formatTop = (data, title) => {
-      if (!data || data.length === 0) return `${title}:\n(пока нет результатов)`;
-      return `${title}:\n` + data.map((x, i) => {
-        let sem = "(Семестр 2)";
-        if (x.direction_name) {
-          const matchNew = x.direction_name.match(/\(Семестр \d\)/);
-          const matchOld = x.direction_name.match(/\(Sem (.+)\)/);
-          if (matchNew) {
-            sem = matchNew[0];
-          } else if (matchOld) {
-            const romans = {"I":"1", "II":"2", "III":"3", "IV":"4", "V":"5", "VI":"6", "VII":"7", "VIII":"8"};
-            sem = `(Семестр ${romans[matchOld[1]] || "2"})`;
-          }
-        }
-        
-        let dateStr = "";
-        if (x.created_at) {
-          const d = new Date(x.created_at);
-          const pad = n => String(n).padStart(2, "0");
-          dateStr = ` [${pad(d.getDate())}.${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}]`;
-        }
-
-        return `${i + 1}. ${Number(x.avg_gpa).toFixed(2)} ${sem}${dateStr}`;
-      }).join("\n");
-    };
-
-    const seText = formatTop(dataSE, "💻 Software Engineering");
-    const csText = formatTop(dataCS, "🛡️ Cyber Security");
-
-    const message = `🏆 Обновленный Лидерборд GPA:
-
-${seText}
-
-${csText}`;
+    const gpaStr = Number(r.avgGPA).toFixed(2);
+    // r.direction = "Software Engineering (Семестр 1)"
+    const message = `🎓 <b>Новый расчёт GPA!</b>\nНаправление: <i>${r.direction}</i>\nРезультат: <b>${gpaStr}</b>\n\n👇 <i>Выберите курс, чтобы загрузить актуальный лидерборд:</i>`;
 
     await fetch(
       `https://api.telegram.org/bot${_0x1a}/sendMessage`,
@@ -724,6 +666,7 @@ ${csText}`;
         body: JSON.stringify({
           chat_id: _0x1b,
           text: message,
+          parse_mode: "HTML",
           reply_markup: {
             inline_keyboard: [
               [
