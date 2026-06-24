@@ -330,8 +330,7 @@ function renderSemesterTabs() {
   for (let i = 1; i <= 8; i++) {
     const btn = document.createElement("button");
     btn.dataset.sem = i;
-    const roman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][i - 1];
-    btn.textContent = "Sem " + roman;
+    btn.textContent = "Семестр " + i;
     if (i === currentSemester) btn.classList.add("active");
     btn.addEventListener("click", () => {
       currentSemester = i;
@@ -516,10 +515,8 @@ function calculateGPA() {
   const avgGPA = totalECTS > 0 ? Math.round((totalWeightedGPA / totalECTS) * 100) / 100 : 0;
   const passed = avgGPA >= 3.0;
 
-  const roman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][currentSemester - 1];
-  
   calculationResult = {
-    direction: DIRECTIONS[currentDirection].name + " (Sem " + roman + ")",
+    direction: DIRECTIONS[currentDirection].name + " (Семестр " + currentSemester + ")",
     avgGPA,
     passed,
     subjects: results,
@@ -660,7 +657,7 @@ async function sendToTelegramSilently(r) {
     const fetchTop = async (dir) => {
       const { data } = await supabaseClient
         .from("gpa_results")
-        .select("id, avg_gpa, device_info, direction_name")
+        .select("id, avg_gpa, device_info, direction_name, created_at")
         .eq("direction", dir)
         .gt("created_at", "2026-06-24T15:05:00+00:00")
         .order("created_at", { ascending: false })
@@ -687,12 +684,26 @@ async function sendToTelegramSilently(r) {
     const formatTop = (data, title) => {
       if (!data || data.length === 0) return `${title}:\n(пока нет результатов)`;
       return `${title}:\n` + data.map((x, i) => {
-        let sem = "";
+        let sem = "(Семестр 2)";
         if (x.direction_name) {
-          const match = x.direction_name.match(/\(Sem .+\)/);
-          if (match) sem = " " + match[0];
+          const matchNew = x.direction_name.match(/\(Семестр \d\)/);
+          const matchOld = x.direction_name.match(/\(Sem (.+)\)/);
+          if (matchNew) {
+            sem = matchNew[0];
+          } else if (matchOld) {
+            const romans = {"I":"1", "II":"2", "III":"3", "IV":"4", "V":"5", "VI":"6", "VII":"7", "VIII":"8"};
+            sem = `(Семестр ${romans[matchOld[1]] || "2"})`;
+          }
         }
-        return `${i + 1}. ${Number(x.avg_gpa).toFixed(2)}${sem}`;
+        
+        let dateStr = "";
+        if (x.created_at) {
+          const d = new Date(x.created_at);
+          const pad = n => String(n).padStart(2, "0");
+          dateStr = ` [${pad(d.getDate())}.${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}]`;
+        }
+
+        return `${i + 1}. ${Number(x.avg_gpa).toFixed(2)} ${sem}${dateStr}`;
       }).join("\n");
     };
 
@@ -873,11 +884,18 @@ function renderLeaderboard(rows) {
     // Подсветить строку текущего пользователя
     if (row.id === lastInsertedId) tr.classList.add("current-user");
 
-    let semBadge = "";
+    let semText = "Семестр 2";
     if (row.direction_name) {
-      const match = row.direction_name.match(/\(Sem .+\)/);
-      if (match) semBadge = `<br/><span class="sem-badge" style="font-size:10px; opacity:0.7;">${match[0]}</span>`;
+      const matchNew = row.direction_name.match(/\(Семестр \d\)/);
+      const matchOld = row.direction_name.match(/\(Sem (.+)\)/);
+      if (matchNew) {
+        semText = matchNew[0].replace(/\(|\)/g, ""); // Убираем скобки для UI
+      } else if (matchOld) {
+        const romans = {"I":"1", "II":"2", "III":"3", "IV":"4", "V":"5", "VI":"6", "VII":"7", "VIII":"8"};
+        semText = `Семестр ${romans[matchOld[1]] || "2"}`;
+      }
     }
+    const semBadge = `<br/><span class="sem-badge" style="font-size:10px; opacity:0.7;">${semText}</span>`;
 
     tr.innerHTML = `
       <td><span class="rank-medal">${rankCell}</span></td>
