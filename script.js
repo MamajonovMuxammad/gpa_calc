@@ -862,7 +862,7 @@ function renderLeaderboard(rows) {
       <td>${dateStr}</td>
     `;
     
-    if (isAdmin) {
+    if (sessionStorage.getItem("is_admin") === "true") {
       tr.classList.add("clickable-row");
       tr.title = "Нажмите для просмотра подробностей";
       tr.addEventListener("click", () => openAdminDetailsModal(row));
