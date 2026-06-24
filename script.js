@@ -777,7 +777,7 @@ async function loadLeaderboard() {
 
   const { data, error } = await supabaseClient
     .from("gpa_results")
-    .select("id, avg_gpa, passed, created_at, device_info, direction_name, results_json")
+    .select("id, avg_gpa, passed, created_at, device_info, direction_name, subjects")
     .eq("direction", currentLbTab)
     .gt("created_at", "2026-06-24T15:05:00+00:00")
     .order("created_at", { ascending: false })
@@ -889,16 +889,16 @@ function openAdminDetailsModal(row) {
   `;
 
   // Parse results_json
-  let subjects = [];
-  if (row.results_json) {
+  let subjectsList = [];
+  if (row.subjects) {
     try {
-      subjects = typeof row.results_json === "string" ? JSON.parse(row.results_json) : row.results_json;
-    } catch(e) { console.error("Error parsing results_json", e); }
+      subjectsList = typeof row.subjects === "string" ? JSON.parse(row.subjects) : row.subjects;
+    } catch(e) {}
   }
 
   tableBody.innerHTML = "";
-  if (subjects && subjects.length > 0) {
-    subjects.forEach(s => {
+  if (subjectsList && subjectsList.length > 0) {
+    subjectsList.forEach(s => {
       const gpa = parseFloat(s.gpa);
       const gpaClass = gpa >= 4.5 ? "gpa-high" : gpa >= 3.5 ? "gpa-mid" : gpa >= 3.0 ? "gpa-low" : "gpa-fail";
       const tr = document.createElement("tr");
