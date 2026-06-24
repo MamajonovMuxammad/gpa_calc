@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="GPA Calculator для студентов IT Park University. Рассчитайте свой GPA по 5-балльной шкале." />
+  <title>GPA Calculator — IT Park University</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ====== Шапка ====== -->
+  <header class="site-header">
+    <div class="logo">IT Park <span>University</span></div>
+    <div class="header-right">
+      <button class="btn-leaderboard" id="btnLeaderboard" title="Лидерборд">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="18" y="3" width="4" height="18"/><rect x="10" y="8" width="4" height="13"/><rect x="2" y="13" width="4" height="8"/>
+        </svg>
+        Лидерборд
+      </button>
+      <div class="step-indicator" id="stepIndicator">01 / 03</div>
+    </div>
+  </header>
+
+  <main class="app-container">
+
+    <!-- ====== ЭКРАН 1 — Выбор направления ====== -->
+    <section class="screen direction-screen active" id="screenDirection">
+      <p class="direction-title">Выберите направление</p>
+      <div class="direction-grid">
+
+        <!-- Software Engineering -->
+        <div class="direction-card" id="cardSE" data-direction="se" tabindex="0" role="button" aria-label="Выбрать Software Engineering">
+          <div>
+            <span class="card-index">01</span>
+            <h2 class="card-name">Software<br/>Engineering</h2>
+          </div>
+          <ul class="card-subjects">
+            <li>Математика</li>
+            <li>История</li>
+            <li>Web Development</li>
+            <li>AI Foundation</li>
+            <li>Java / C# Programming</li>
+            <li>Internship</li>
+          </ul>
+          <div class="card-arrow">
+            <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+
+        <!-- Cyber Security -->
+        <div class="direction-card" id="cardCS" data-direction="cs" tabindex="0" role="button" aria-label="Выбрать Cyber Security">
+          <div>
+            <span class="card-index">02</span>
+            <h2 class="card-name">Cyber<br/>Security</h2>
+          </div>
+          <ul class="card-subjects">
+            <li>Математика</li>
+            <li>История</li>
+            <li>Software Testing</li>
+            <li>Python</li>
+            <li>AI Foundation</li>
+            <li>Religion Studies</li>
+            <li>Cryptography</li>
+            <li>Internship</li>
+          </ul>
+          <div class="card-arrow">
+            <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====== ЭКРАН 2 — Ввод баллов ====== -->
+    <section class="screen input-screen hidden" id="screenInput">
+      <div class="input-header">
+        <button class="back-btn" id="btnBack" aria-label="Назад к выбору направления">
+          <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          <span>Назад</span>
+        </button>
+        <span class="direction-label" id="directionLabel">—</span>
+      </div>
+
+      <!-- Переключатель языка (только SE) -->
+      <div class="lang-toggle-wrapper hidden" id="langToggleWrapper">
+        <div class="lang-toggle">
+          <button class="active" data-lang="java" id="btnJava">Java Programming</button>
+          <button data-lang="csharp" id="btnCsharp">C# Programming</button>
+        </div>
+      </div>
+
+      <!-- Таблица предметов -->
+      <div class="subjects-table">
+        <div class="subject-table-header">
+          <span></span>
+          <span>Предмет</span>
+          <span>Баллы</span>
+          <span>Оценка</span>
+        </div>
+        <div id="subjectRows">
+          <!-- Строки генерируются в JS -->
+        </div>
+      </div>
+
+      <!-- Кнопка рассчитать -->
+      <div class="calc-section">
+        <button class="btn-calculate" id="btnCalculate" disabled>Рассчитать GPA</button>
+      </div>
+    </section>
+
+    <!-- ====== ЭКРАН 3 — Результат ====== -->
+    <section class="screen result-screen hidden" id="screenResult">
+      <div class="odometer-section">
+        <p class="odometer-label">Ваш GPA</p>
+        <div class="odometer-wrapper" id="odometerWrapper">
+          <!-- Генерируется в JS: digit, dot, digit, digit -->
+        </div>
+        <span class="odometer-suffix">из 5.0</span>
+        <div>
+          <span class="status-badge" id="statusBadge">—</span>
+        </div>
+      </div>
+
+      <div class="results-table-wrapper">
+        <p class="results-table-title">Детализация по предметам</p>
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>Предмет</th>
+              <th>Баллы</th>
+              <th>GPA</th>
+              <th>Оценка</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody">
+            <!-- Генерируется в JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn-leaderboard-result" id="btnLeaderboardResult">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="18" y="3" width="4" height="18"/><rect x="10" y="8" width="4" height="13"/><rect x="2" y="13" width="4" height="8"/>
+          </svg>
+          Смотреть лидерборд
+        </button>
+        <button class="btn-recalc" id="btnRecalc">Пересчитать</button>
+      </div>
+    </section>
+
+    <!-- ====== ЭКРАН 4 — Лидерборд ====== -->
+    <section class="screen leaderboard-screen hidden" id="screenLeaderboard">
+      <div class="leaderboard-header">
+        <button class="back-btn" id="btnLeaderboardBack" aria-label="Назад">
+          <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          <span>Назад</span>
+        </button>
+        <span class="leaderboard-title-label">Лидерборд</span>
+        <button class="btn-refresh" id="btnRefresh" title="Обновить">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Вкладки направлений -->
+      <div class="lb-tabs">
+        <button class="lb-tab active" id="tabSE" data-tab="se">Software Engineering</button>
+        <button class="lb-tab" id="tabCS" data-tab="cs">Cyber Security</button>
+      </div>
+
+      <!-- Состояние загрузки -->
+      <div class="lb-loading hidden" id="lbLoading">
+        <div class="lb-spinner"></div>
+        <span>Загрузка...</span>
+      </div>
+
+      <!-- Пустое состояние -->
+      <div class="lb-empty hidden" id="lbEmpty">
+        <p>Результатов пока нет.<br/>Будьте первым!</p>
+      </div>
+
+      <!-- Таблица рейтинга -->
+      <div class="lb-table-wrapper" id="lbTableWrapper">
+        <table class="lb-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>GPA</th>
+              <th>Статус</th>
+              <th>Дата</th>
+            </tr>
+          </thead>
+          <tbody id="lbTableBody">
+            <!-- Генерируется в JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Supabase JS SDK (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
+</body>
+</html>
